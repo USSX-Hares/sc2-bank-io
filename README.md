@@ -16,7 +16,7 @@ See Documentation:
 ### TODOs - StarCraft
  - [ ] Split Test Map and the Mode
  - [x] Session KeepAlive support
- - [ ] Wipe out bank on start and fill meta correctly
+ - [x] Wipe out bank on start and fill meta correctly
  - [ ] Basic support of all events
  - [ ] Extended support of all events ("understand what user means not what he types")
  - [ ] Add grammar, hints & labels for all triggers & functions

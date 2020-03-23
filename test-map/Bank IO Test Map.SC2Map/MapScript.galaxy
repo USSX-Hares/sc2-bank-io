@@ -12,6 +12,7 @@ include "TriggerLibs/NativeLib"
 //--------------------------------------------------------------------------------------------------
 // Variable Declarations
 string[17] libuuid_gv_hexDigits;
+bool libuuid_gv_initComplete;
 
 // Function Declarations
 string libuuid_gf_RandomHexDigit ();
@@ -106,6 +107,7 @@ bool libuuid_gt_InitHexDigits_Func (bool testConds, bool runActions) {
     libuuid_gv_hexDigits[13] = "d";
     libuuid_gv_hexDigits[14] = "e";
     libuuid_gv_hexDigits[15] = "f";
+    libuuid_gv_initComplete = true;
     return true;
 }
 
@@ -159,9 +161,10 @@ const string libBkIO_gv_bANK_SECTION_EVENTS_META = "meta";
 const string libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX = "events";
 const string libBkIO_gv_bANK_SECTION_EVENTS_REQUEST = "request";
 const string libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE = "response";
-const string libBkIO_gv_bANK_NAME = "bankio";
-const fixed libBkIO_gv_bANK_LOADER_INTERVAL = 1.0;
+const string libBkIO_gv_pROTOCOL_VERSION = "1.0";
 const fixed libBkIO_gv_dISCONNECTION_TIMEOUT = 5.0;
+const fixed libBkIO_gv_bANK_LOADER_INTERVAL = 1.0;
+const string libBkIO_gv_bANK_NAME = "bankio";
 
 // Structures
 struct libBkIO_gs_BankEvent {
@@ -174,6 +177,8 @@ struct libBkIO_gs_BankEvent {
 };
 
 // Variable Declarations
+string libBkIO_gv_gAME_ID;
+int libBkIO_gv_gAME_START_TIME;
 playergroup libBkIO_gv_playerswithBank;
 int[17] libBkIO_gv_lastRevision;
 bool[17] libBkIO_gv_hasUpdates;
@@ -200,6 +205,7 @@ void libBkIO_gf_ProcessRequest (int lp_player, string lp_eventID);
 void libBkIO_gf_SaveBank (int lp_player);
 void libBkIO_gf_ReloadBank (int lp_player);
 void libBkIO_gf_CheckConnectedStatus (int lp_player);
+void libBkIO_gf_PrepareBank (int lp_player);
 
 // Trigger Declarations
 trigger libBkIO_gt_EventGenerator;
@@ -221,18 +227,15 @@ void libBkIO_InitLibraries () {
 bool libBkIO_InitVariables_completed = false;
 
 void libBkIO_InitVariables () {
-    int init_i;
-
     if (libBkIO_InitVariables_completed) {
         return;
     }
 
     libBkIO_InitVariables_completed = true;
 
+    libBkIO_gv_gAME_ID = "";
+    libBkIO_gv_gAME_START_TIME = SynchronousGameStartTimeGet();
     libBkIO_gv_playerswithBank = PlayerGroupEmpty();
-    for (init_i = 0; init_i <= 16; init_i += 1) {
-        libBkIO_gv_hasConnection[init_i] = true;
-    }
 }
 
 // Presets
@@ -696,6 +699,31 @@ void libBkIO_gf_CheckConnectedStatus (int lp_player) {
     libBkIO_gv_hasConnection[lp_player] = lv_hasConnectionNew;
 }
 
+void libBkIO_gf_PrepareBank (int lp_player) {
+    // Automatic Variable Declarations
+    int autoA8D7E729_ae;
+    int autoA8D7E729_var;
+
+    // Implementation
+    if ((PlayerType(lp_player) == c_playerTypeUser)) {
+        BankLoad(libBkIO_gv_bANK_NAME, lp_player);
+        libBkIO_gv_iOBank[lp_player] = BankLastCreated();
+        autoA8D7E729_ae = (BankSectionCount(libBkIO_gv_iOBank[lp_player]) - 1);
+        autoA8D7E729_var = 0;
+        for ( ; autoA8D7E729_var <= autoA8D7E729_ae; autoA8D7E729_var += 1 ) {
+            BankSectionRemove(libBkIO_gv_iOBank[lp_player], BankSectionName(libBkIO_gv_iOBank[lp_player], autoA8D7E729_var));
+        }
+        BankValueSetFromString(libBkIO_gv_iOBank[lp_player], libBkIO_gv_bANK_SECTION_EVENTS_META, "protocol-version", libBkIO_gv_pROTOCOL_VERSION);
+        BankValueSetFromString(libBkIO_gv_iOBank[lp_player], libBkIO_gv_bANK_SECTION_EVENTS_META, "game-id", libBkIO_gv_gAME_ID);
+        BankValueSetFromInt(libBkIO_gv_iOBank[lp_player], libBkIO_gv_bANK_SECTION_EVENTS_META, "start-time", libBkIO_gv_gAME_START_TIME);
+        BankSave(BankLastCreated());
+        libBkIO_gv_lastPingReceived[lp_player] = InitialDateTimeGet();
+        libBkIO_gv_hasConnection[lp_player] = true;
+        PlayerGroupAdd(libBkIO_gv_playerswithBank, lp_player);
+    }
+
+}
+
 // Triggers
 //--------------------------------------------------------------------------------------------------
 // Trigger: Event Generator
@@ -813,18 +841,16 @@ bool libBkIO_gt_LoadBank_Func (bool testConds, bool runActions) {
     }
 
     TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Game initialization: Loading bank"), false);
+    while (!((libuuid_gv_initComplete == true))) {
+        Wait(0.01, c_timeReal);
+    }
+    libBkIO_gv_gAME_ID = libuuid_gf_UUID4();
     autoAFA7BD91_g = PlayerGroupActive();
     autoAFA7BD91_var = -1;
     while (true) {
         autoAFA7BD91_var = PlayerGroupNextPlayer(autoAFA7BD91_g, autoAFA7BD91_var);
         if (autoAFA7BD91_var < 0) { break; }
-        if ((PlayerType(autoAFA7BD91_var) == c_playerTypeUser)) {
-            BankLoad(libBkIO_gv_bANK_NAME, autoAFA7BD91_var);
-            libBkIO_gv_iOBank[autoAFA7BD91_var] = BankLastCreated();
-            libBkIO_gv_lastPingReceived[autoAFA7BD91_var] = InitialDateTimeGet();
-            PlayerGroupAdd(libBkIO_gv_playerswithBank, autoAFA7BD91_var);
-        }
-
+        libBkIO_gf_PrepareBank(autoAFA7BD91_var);
     }
     TriggerEnable(libBkIO_gt_EventLoader, true);
     return true;
