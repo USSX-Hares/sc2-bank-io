@@ -76,10 +76,10 @@ unless the Response is the generic event.
 ### Meta Section, Data Channel, Session Keel-Alive & Disconnection
 1. When the game starts, it SHOULD wipe-out any existing bank data
 and create a Meta (key: `meta`) section with the following content:
- - Protocol Version (key: `protocol-version`) - should be exactly `1.0`
- - Game ID (key: `game-id`) - a UUID-like string
- - Game Start Time (key: `start-time`) - an integer
-   containing the timestamp in UNIX-format (seconds)
+   - Protocol Version (key: `protocol-version`) - should be exactly `1.0`
+   - Game ID (key: `game-id`) - a UUID-like string
+   - Game Start Time (key: `start-time`) - an integer
+     containing the timestamp in UNIX-format (seconds)
 2. If, during session establishment, the Bot detects wrong protocol version,
 it MUST immediately stop sending any events to the channel
 and send a single event of type Disconnection with the Custom Data containing exactly the following:
