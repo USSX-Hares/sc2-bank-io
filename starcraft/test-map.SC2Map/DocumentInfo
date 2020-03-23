@@ -5,6 +5,6 @@
     </ModType>
     <Dependencies>
         <Value>bnet:Void (Mod)/0.0/999,file:Mods/Void.SC2Mod</Value>
-        <Value>file:Mods\starcraft-io\bank-io.SC2Mod</Value>
+        <Value>bnet:Bank IO/1.0/286166,file:Mods\starcraft-io\bank-io.SC2Mod</Value>
     </Dependencies>
 </DocInfo>
