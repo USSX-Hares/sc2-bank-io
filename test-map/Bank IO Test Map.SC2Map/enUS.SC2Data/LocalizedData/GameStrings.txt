@@ -21,5 +21,7 @@ Param/Value/lib_BkIO_0334644E=Parser
 Param/Value/lib_BkIO_05E30139=Debugger
 Param/Value/lib_BkIO_1D18B978=Saving bank...
 Param/Value/lib_BkIO_3743C2BC=Event Loop
+Param/Value/lib_BkIO_7804CEB0=You were reconnected to the Bot
 Param/Value/lib_BkIO_895CBA94=Default
+Param/Value/lib_BkIO_B532D8CF=<s val="ErrorDisplay">Your connection to the Bot was lost</s>
 Param/Value/lib_BkIO_FB395559=Event Worker

@@ -161,6 +161,7 @@ const string libBkIO_gv_bANK_SECTION_EVENTS_REQUEST = "request";
 const string libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE = "response";
 const string libBkIO_gv_bANK_NAME = "bankio";
 const fixed libBkIO_gv_bANK_LOADER_INTERVAL = 1.0;
+const fixed libBkIO_gv_dISCONNECTION_TIMEOUT = 5.0;
 
 // Structures
 struct libBkIO_gs_BankEvent {
@@ -177,6 +178,8 @@ playergroup libBkIO_gv_playerswithBank;
 int[17] libBkIO_gv_lastRevision;
 bool[17] libBkIO_gv_hasUpdates;
 bool[17] libBkIO_gv_lock;
+datetime[17] libBkIO_gv_lastPingReceived;
+bool[17] libBkIO_gv_hasConnection;
 bank[17] libBkIO_gv_iOBank;
 
 // Function Declarations
@@ -190,11 +193,13 @@ int libBkIO_gf_ParseMessageType (string lp_messageTypeString);
 string libBkIO_gf_ConvertMessageType (int lp_messageType);
 void libBkIO_gf_LoadEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, string lp_eventID, int lp_eventType);
 void libBkIO_gf_StoreEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, int lp_eventType);
+void libBkIO_gf_ProcessRequestPing (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner);
 void libBkIO_gf_ProcessRequestAllocateUnit (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner, int lp_unitOwner);
 unit libBkIO_gf_FindUnit (int lp_unitOwner, string lp_unitTypeStr, string lp_unitLocationStr);
 void libBkIO_gf_ProcessRequest (int lp_player, string lp_eventID);
 void libBkIO_gf_SaveBank (int lp_player);
 void libBkIO_gf_ReloadBank (int lp_player);
+void libBkIO_gf_CheckConnectedStatus (int lp_player);
 
 // Trigger Declarations
 trigger libBkIO_gt_EventGenerator;
@@ -216,6 +221,8 @@ void libBkIO_InitLibraries () {
 bool libBkIO_InitVariables_completed = false;
 
 void libBkIO_InitVariables () {
+    int init_i;
+
     if (libBkIO_InitVariables_completed) {
         return;
     }
@@ -223,6 +230,9 @@ void libBkIO_InitVariables () {
     libBkIO_InitVariables_completed = true;
 
     libBkIO_gv_playerswithBank = PlayerGroupEmpty();
+    for (init_i = 0; init_i <= 16; init_i += 1) {
+        libBkIO_gv_hasConnection[init_i] = true;
+    }
 }
 
 // Presets
@@ -454,6 +464,29 @@ void libBkIO_gf_StoreEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_ev
     libBkIO_gv_hasUpdates[lp_player] = true;
 }
 
+void libBkIO_gf_ProcessRequestPing (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner) {
+    // Variable Declarations
+    libBkIO_gs_BankEvent lv_response;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_response.lv_eventID = "";
+    lv_response.lv_eventType = libBkIO_ge_EventType_AllocateUnit;
+    lv_response.lv_ownerID = "";
+    lv_response.lv_unitID = "";
+    lv_response.lv_customData = "";
+    lv_response.lv_result = true;
+
+    // Implementation
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Processing event #" + lp_request.lv_eventID + ": Ping (timestamp: " + lp_request.lv_customData + ")")), false);
+    lv_response.lv_eventID = lp_request.lv_eventID;
+    lv_response.lv_eventType = lp_request.lv_eventType;
+    lv_response.lv_result = true;
+    lv_response.lv_customData = IntToString(CurrentSynchronousGameTimeGet());
+    libBkIO_gv_lastPingReceived[lp_bankOwner] = CurrentDateTimeGet();
+    libBkIO_gf_StoreEvent(lp_bankOwner, lv_response, libBkIO_ge_MessageType_Response);
+}
+
 void libBkIO_gf_ProcessRequestAllocateUnit (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner, int lp_unitOwner) {
     // Variable Declarations
     libBkIO_gs_BankEvent lv_response;
@@ -561,7 +594,10 @@ bool auto_libBkIO_gf_ProcessRequest_TriggerFunc (bool testConds, bool runActions
     libBkIO_gf_LoadEvent(lp_player, lv_request, lp_eventID, libBkIO_ge_MessageType_Request);
     TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Processing event #" + lv_request.lv_eventID + "...")), false);
     autoBFBB2428_val = lv_request.lv_eventType;
-    if (autoBFBB2428_val == libBkIO_ge_EventType_AllocateUnit) {
+    if (autoBFBB2428_val == libBkIO_ge_EventType_Ping) {
+        libBkIO_gf_ProcessRequestPing(lv_request, lp_player);
+    }
+    else if (autoBFBB2428_val == libBkIO_ge_EventType_AllocateUnit) {
         libBkIO_gf_ProcessRequestAllocateUnit(lv_request, lp_player, c_playerAny);
     }
     else {
@@ -627,6 +663,37 @@ void libBkIO_gf_ReloadBank (int lp_player) {
     else {
         TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank is locked, ignoring reload operation..."), false);
     }
+}
+
+void libBkIO_gf_CheckConnectedStatus (int lp_player) {
+    // Variable Declarations
+    string lv_eventsListSection;
+    bool lv_hasConnectionNew;
+    bool lv_hasConnectionStored;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_eventsListSection = (libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX + "." + libBkIO_gv_bANK_SECTION_EVENTS_REQUEST + "s");
+    lv_hasConnectionNew = (libBkIO_gv_dISCONNECTION_TIMEOUT >= (CurrentSynchronousGameTimeGet() - DateTimeToInt(libBkIO_gv_lastPingReceived[lp_player])));
+    lv_hasConnectionStored = libBkIO_gv_hasConnection[lp_player];
+
+    // Implementation
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText(("Checking Player's " + IntToString(lp_player) + " connection...")), false);
+    if ((lv_hasConnectionStored == true) && (lv_hasConnectionNew == true)) {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Player connected"), false);
+    }
+    else if ((lv_hasConnectionStored == false) && (lv_hasConnectionNew == true)) {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Player successfully reconnected"), false);
+        UIDisplayMessage(PlayerGroupSingle(lp_player), c_messageAreaChat, StringExternal("Param/Value/lib_BkIO_7804CEB0"));
+    }
+    else if ((lv_hasConnectionStored == false) && (lv_hasConnectionNew == false)) {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Player still not connected"), false);
+    }
+    else if ((lv_hasConnectionStored == true) && (lv_hasConnectionNew == false)) {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Player lost connection to the bot"), false);
+        UIDisplayMessage(PlayerGroupSingle(lp_player), c_messageAreaChat, StringExternal("Param/Value/lib_BkIO_B532D8CF"));
+    }
+    libBkIO_gv_hasConnection[lp_player] = lv_hasConnectionNew;
 }
 
 // Triggers
@@ -720,6 +787,7 @@ bool libBkIO_gt_EventLoader_Func (bool testConds, bool runActions) {
         libBkIO_gf_SaveBank(auto5053E6FA_var);
         libBkIO_gf_PringBankSections(auto5053E6FA_var);
         libBkIO_gf_ReloadBank(auto5053E6FA_var);
+        libBkIO_gf_CheckConnectedStatus(auto5053E6FA_var);
     }
     return true;
 }
@@ -753,6 +821,7 @@ bool libBkIO_gt_LoadBank_Func (bool testConds, bool runActions) {
         if ((PlayerType(autoAFA7BD91_var) == c_playerTypeUser)) {
             BankLoad(libBkIO_gv_bANK_NAME, autoAFA7BD91_var);
             libBkIO_gv_iOBank[autoAFA7BD91_var] = BankLastCreated();
+            libBkIO_gv_lastPingReceived[autoAFA7BD91_var] = InitialDateTimeGet();
             PlayerGroupAdd(libBkIO_gv_playerswithBank, autoAFA7BD91_var);
         }
 
