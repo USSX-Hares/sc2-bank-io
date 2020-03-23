@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PlacedObjects Version="27">
+    <ObjectUnit Id="579104985" Position="68.6894,52.3488,0" Rotation="2.4484" Scale="1,1,1" UnitType="ThorAP" Player="2"/>
+    <ObjectUnit Id="510393183" Position="43.078,59.4882,0" Rotation="2.6713" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="1506352502" Position="56.2631,63.2812,0" Rotation="0.0051" Scale="1,1,1" UnitType="ThorAP" Player="1"/>
+    <ObjectUnit Id="1754838614" Position="62.3205,53.2045,0" Rotation="4.8908" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="24007650" Position="68.9575,56.7668,0" Rotation="1.3925" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="1402847334" Position="62.6857,72.4594,0" Rotation="4.1142" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="1953649631" Position="67.1584,64.8974,0" Rotation="0.168" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="2051829912" Position="44.4133,70.4738,0" Rotation="4.1044" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="2108198686" Position="53.028,75.9995,0" Rotation="5.899" Scale="1,1,1" UnitType="Marine" Player="3"/>
+    <ObjectUnit Id="1159443192" Position="51.5446,52.3891,0" Rotation="5.3703" Scale="1,1,1" UnitType="Marine" Player="3"/>
+</PlacedObjects>

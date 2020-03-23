@@ -1,0 +1,1026 @@
+//==================================================================================================
+// 
+// Generated Map Script
+// 
+// Name:   Bank Test Map
+// 
+//==================================================================================================
+include "TriggerLibs/NativeLib"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Random
+//--------------------------------------------------------------------------------------------------
+// Variable Declarations
+string[17] libuuid_gv_hexDigits;
+
+// Function Declarations
+string libuuid_gf_RandomHexDigit ();
+string libuuid_gf_RandomHexNumber (int lp_length);
+string libuuid_gf_UUID4 ();
+
+// Trigger Declarations
+trigger libuuid_gt_InitHexDigits;
+
+// Library Initialization
+void libuuid_InitVariables ();
+
+//--------------------------------------------------------------------------------------------------
+// Library: Random
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void libuuid_InitLibraries () {
+    libNtve_InitVariables();
+}
+
+// Variable Initialization
+bool libuuid_InitVariables_completed = false;
+
+void libuuid_InitVariables () {
+    int init_i;
+
+    if (libuuid_InitVariables_completed) {
+        return;
+    }
+
+    libuuid_InitVariables_completed = true;
+
+    for (init_i = 0; init_i <= 16; init_i += 1) {
+        libuuid_gv_hexDigits[init_i] = "";
+    }
+}
+
+// Functions
+string libuuid_gf_RandomHexDigit () {
+    // Automatic Variable Declarations
+    // Implementation
+    return libuuid_gv_hexDigits[RandomInt(0, 15)];
+}
+
+string libuuid_gf_RandomHexNumber (int lp_length) {
+    // Variable Declarations
+    string lv_result;
+
+    // Automatic Variable Declarations
+    int auto6DE23605_ae;
+    int auto6DE23605_var;
+
+    // Variable Initialization
+    lv_result = "";
+
+    // Implementation
+    auto6DE23605_ae = lp_length;
+    auto6DE23605_var = 1;
+    for ( ; auto6DE23605_var <= auto6DE23605_ae; auto6DE23605_var += 1 ) {
+        lv_result = (lv_result + libuuid_gv_hexDigits[RandomInt(0, 15)]);
+    }
+    return lv_result;
+}
+
+string libuuid_gf_UUID4 () {
+    // Automatic Variable Declarations
+    // Implementation
+    return (libuuid_gf_RandomHexNumber(8) + "-" + libuuid_gf_RandomHexNumber(4) + "-" + libuuid_gf_RandomHexNumber(4) + "-" + libuuid_gf_RandomHexNumber(4) + "-" + libuuid_gf_RandomHexNumber(12));
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Init Hex Digits
+//--------------------------------------------------------------------------------------------------
+bool libuuid_gt_InitHexDigits_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    const int auto9F135F0B_ae = 9;
+    int auto9F135F0B_var;
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto9F135F0B_var = 0;
+    for ( ; auto9F135F0B_var <= auto9F135F0B_ae; auto9F135F0B_var += 1 ) {
+        libuuid_gv_hexDigits[auto9F135F0B_var] = IntToString(auto9F135F0B_var);
+    }
+    libuuid_gv_hexDigits[10] = "a";
+    libuuid_gv_hexDigits[11] = "b";
+    libuuid_gv_hexDigits[12] = "c";
+    libuuid_gv_hexDigits[13] = "d";
+    libuuid_gv_hexDigits[14] = "e";
+    libuuid_gv_hexDigits[15] = "f";
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libuuid_gt_InitHexDigits_Init () {
+    libuuid_gt_InitHexDigits = TriggerCreate("libuuid_gt_InitHexDigits_Func");
+    TriggerAddEventMapInit(libuuid_gt_InitHexDigits);
+}
+
+void libuuid_InitTriggers () {
+    libuuid_gt_InitHexDigits_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool libuuid_InitLib_completed = false;
+
+void libuuid_InitLib () {
+    if (libuuid_InitLib_completed) {
+        return;
+    }
+
+    libuuid_InitLib_completed = true;
+
+    libuuid_InitLibraries();
+    libuuid_InitVariables();
+    libuuid_InitTriggers();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library: Bank IO
+//--------------------------------------------------------------------------------------------------
+// Preset Declarations
+const int libBkIO_ge_ExtendedDebugMessageType_EventWorker = 10000;
+const int libBkIO_ge_ExtendedDebugMessageType_EventLoop = 10001;
+const int libBkIO_ge_ExtendedDebugMessageType_Parser = 10002;
+const int libBkIO_ge_ExtendedDebugMessageType_Debugger = 10003;
+const int libBkIO_ge_EventType_Ping = 0;
+const int libBkIO_ge_EventType_Disconnection = 1;
+const int libBkIO_ge_EventType_AllocateUnit = 2;
+const int libBkIO_ge_EventType_IssueOrder = 3;
+const int libBkIO_ge_EventType_RevokeOwner = 4;
+const int libBkIO_ge_EventType_UnitDies = 5;
+string libBkIO_ge_EventType_Ident (int lp_val);
+const int libBkIO_ge_MessageType_Request = 0;
+const int libBkIO_ge_MessageType_Response = 1;
+
+// Constants
+const string libBkIO_gv_bANK_SECTION_EVENTS_META = "meta";
+const string libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX = "events";
+const string libBkIO_gv_bANK_SECTION_EVENTS_REQUEST = "request";
+const string libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE = "response";
+const string libBkIO_gv_bANK_NAME = "bankio";
+const fixed libBkIO_gv_bANK_LOADER_INTERVAL = 1.0;
+
+// Structures
+struct libBkIO_gs_BankEvent {
+    string lv_eventID;
+    int lv_eventType;
+    string lv_ownerID;
+    string lv_unitID;
+    string lv_customData;
+    bool lv_result;
+};
+
+// Variable Declarations
+playergroup libBkIO_gv_playerswithBank;
+int[17] libBkIO_gv_lastRevision;
+bool[17] libBkIO_gv_hasUpdates;
+bool[17] libBkIO_gv_lock;
+bank[17] libBkIO_gv_iOBank;
+
+// Function Declarations
+int libBkIO_gf_ConvertExtendedDebugMessageType (int lp_potentiallyExtendedType);
+void libBkIO_gf_LogDebugMessage (string lp_message, int lp_logger);
+void libBkIO_gf_EnableDebugging ();
+void libBkIO_gf_PringBankSections (int lp_player);
+int libBkIO_gf_ParseEventType (string lp_eventTypeString);
+string libBkIO_gf_ConvertEventType (int lp_eventType);
+int libBkIO_gf_ParseMessageType (string lp_messageTypeString);
+string libBkIO_gf_ConvertMessageType (int lp_messageType);
+void libBkIO_gf_LoadEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, string lp_eventID, int lp_eventType);
+void libBkIO_gf_StoreEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, int lp_eventType);
+void libBkIO_gf_ProcessRequestAllocateUnit (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner, int lp_unitOwner);
+unit libBkIO_gf_FindUnit (int lp_unitOwner, string lp_unitTypeStr, string lp_unitLocationStr);
+void libBkIO_gf_ProcessRequest (int lp_player, string lp_eventID);
+void libBkIO_gf_SaveBank (int lp_player);
+void libBkIO_gf_ReloadBank (int lp_player);
+
+// Trigger Declarations
+trigger libBkIO_gt_EventGenerator;
+trigger libBkIO_gt_EventLoader;
+trigger libBkIO_gt_LoadBank;
+
+// Library Initialization
+void libBkIO_InitVariables ();
+
+//--------------------------------------------------------------------------------------------------
+// Library: Bank IO
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void libBkIO_InitLibraries () {
+    libNtve_InitVariables();
+}
+
+// Variable Initialization
+bool libBkIO_InitVariables_completed = false;
+
+void libBkIO_InitVariables () {
+    if (libBkIO_InitVariables_completed) {
+        return;
+    }
+
+    libBkIO_InitVariables_completed = true;
+
+    libBkIO_gv_playerswithBank = PlayerGroupEmpty();
+}
+
+// Presets
+string libBkIO_ge_EventType_Ident (int lp_val) {
+         if (lp_val == libBkIO_ge_EventType_Ping) { return "Ping"; }
+    else if (lp_val == libBkIO_ge_EventType_Disconnection) { return "Disconnection"; }
+    else if (lp_val == libBkIO_ge_EventType_AllocateUnit) { return "AllocateUnit"; }
+    else if (lp_val == libBkIO_ge_EventType_IssueOrder) { return "IssueOrder"; }
+    else if (lp_val == libBkIO_ge_EventType_RevokeOwner) { return "RevokeOwner"; }
+    else if (lp_val == libBkIO_ge_EventType_UnitDies) { return "UnitDies"; }
+    return null;
+}
+
+// Functions
+int libBkIO_gf_ConvertExtendedDebugMessageType (int lp_potentiallyExtendedType) {
+    // Automatic Variable Declarations
+    int autoE1613D5D_val;
+
+    // Implementation
+    autoE1613D5D_val = lp_potentiallyExtendedType;
+    if (autoE1613D5D_val == libBkIO_ge_ExtendedDebugMessageType_Debugger) {
+        return 5;
+    }
+    else if (autoE1613D5D_val == libBkIO_ge_ExtendedDebugMessageType_EventLoop) {
+        return 6;
+    }
+    else if (autoE1613D5D_val == libBkIO_ge_ExtendedDebugMessageType_EventWorker) {
+        return 7;
+    }
+    else if (autoE1613D5D_val == libBkIO_ge_ExtendedDebugMessageType_Parser) {
+        return 8;
+    }
+    else {
+        return lp_potentiallyExtendedType;
+    }
+}
+
+void libBkIO_gf_LogDebugMessage (string lp_message, int lp_logger) {
+    // Automatic Variable Declarations
+    // Implementation
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(lp_logger), StringToText(lp_message), false);
+}
+
+void libBkIO_gf_EnableDebugging () {
+    // Automatic Variable Declarations
+    // Implementation
+    TriggerDebugSetTypeFile(1, "bank-io-default.log");
+    TriggerDebugSetTypeFile(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), "bank-io-debugger.log");
+    TriggerDebugSetTypeFile(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), "bank-io-event-worker.log");
+    TriggerDebugSetTypeFile(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), "bank-io-event-loop.log");
+    TriggerDebugSetTypeFile(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Parser), "bank-io-event-parser.log");
+    TriggerDebugSetTypeName(1, StringExternal("Param/Value/lib_BkIO_895CBA94"));
+    TriggerDebugSetTypeName(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), StringExternal("Param/Value/lib_BkIO_05E30139"));
+    TriggerDebugSetTypeName(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringExternal("Param/Value/lib_BkIO_FB395559"));
+    TriggerDebugSetTypeName(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringExternal("Param/Value/lib_BkIO_3743C2BC"));
+    TriggerDebugSetTypeName(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Parser), StringExternal("Param/Value/lib_BkIO_0334644E"));
+    TriggerDebugEnableType(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), true);
+    TriggerDebugEnableType(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), true);
+    TriggerDebugEnableType(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), true);
+    TriggerDebugEnableType(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Parser), true);
+    TriggerDebugOutputEnable(true);
+    TriggerDebugWindowOpen(true);
+    TriggerEnable(libBkIO_gt_EventGenerator, true);
+}
+
+void libBkIO_gf_PringBankSections (int lp_player) {
+    // Variable Declarations
+    string lv_message;
+
+    // Automatic Variable Declarations
+    int auto99A25EB4_ae;
+    int auto99A25EB4_var;
+
+    // Variable Initialization
+    lv_message = "";
+
+    // Implementation
+    lv_message = ("The following sections exist in player's " + IntToString(lp_player) + " bank: [");
+    auto99A25EB4_ae = (BankSectionCount(libBkIO_gv_iOBank[lp_player]) - 1);
+    auto99A25EB4_var = 0;
+    for ( ; auto99A25EB4_var <= auto99A25EB4_ae; auto99A25EB4_var += 1 ) {
+        lv_message = (lv_message + " '" + BankSectionName(libBkIO_gv_iOBank[lp_player], auto99A25EB4_var) + "',");
+    }
+    lv_message = (lv_message + " ]");
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), StringToText(lv_message), false);
+}
+
+int libBkIO_gf_ParseEventType (string lp_eventTypeString) {
+    // Automatic Variable Declarations
+    string auto26152DFF_val;
+
+    // Implementation
+    auto26152DFF_val = lp_eventTypeString;
+    if (auto26152DFF_val == "ping") {
+        return libBkIO_ge_EventType_Ping;
+    }
+    else if (auto26152DFF_val == "disconnection") {
+        return libBkIO_ge_EventType_Disconnection;
+    }
+    else if (auto26152DFF_val == "allocate-unit") {
+        return libBkIO_ge_EventType_AllocateUnit;
+    }
+    else if (auto26152DFF_val == "order") {
+        return libBkIO_ge_EventType_IssueOrder;
+    }
+    else if (auto26152DFF_val == "revoke-owner") {
+        return libBkIO_ge_EventType_RevokeOwner;
+    }
+    else if (auto26152DFF_val == "unit-dies") {
+        return libBkIO_ge_EventType_UnitDies;
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_BkIO_221DCFF4", "EventType", StringToText(lp_eventTypeString));
+        UIAlert("Trigger", 1, TextExpressionAssemble("Param/Expression/lib_BkIO_221DCFF4"), null);
+        return libBkIO_ge_EventType_Ping;
+    }
+}
+
+string libBkIO_gf_ConvertEventType (int lp_eventType) {
+    // Automatic Variable Declarations
+    int auto5D04C250_val;
+
+    // Implementation
+    auto5D04C250_val = lp_eventType;
+    if (auto5D04C250_val == libBkIO_ge_EventType_Ping) {
+        return "ping";
+    }
+    else if (auto5D04C250_val == libBkIO_ge_EventType_Disconnection) {
+        return "disconnection";
+    }
+    else if (auto5D04C250_val == libBkIO_ge_EventType_AllocateUnit) {
+        return "allocate-unit";
+    }
+    else if (auto5D04C250_val == libBkIO_ge_EventType_IssueOrder) {
+        return "order";
+    }
+    else if (auto5D04C250_val == libBkIO_ge_EventType_RevokeOwner) {
+        return "revoke-owner";
+    }
+    else if (auto5D04C250_val == libBkIO_ge_EventType_UnitDies) {
+        return "unit-dies";
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_BkIO_4AC416D1", "EventType", StringToText(IntToString((lp_eventType))));
+        UIAlert("Trigger", 1, TextExpressionAssemble("Param/Expression/lib_BkIO_4AC416D1"), null);
+        return "undefined";
+    }
+}
+
+int libBkIO_gf_ParseMessageType (string lp_messageTypeString) {
+    // Automatic Variable Declarations
+    string auto2FF50CBC_val;
+
+    // Implementation
+    auto2FF50CBC_val = lp_messageTypeString;
+    if (auto2FF50CBC_val == libBkIO_gv_bANK_SECTION_EVENTS_REQUEST) {
+        return libBkIO_ge_MessageType_Request;
+    }
+    else if (auto2FF50CBC_val == libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE) {
+        return libBkIO_ge_MessageType_Response;
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_BkIO_104FE558", "EventType", StringToText(lp_messageTypeString));
+        UIAlert("Trigger", 1, TextExpressionAssemble("Param/Expression/lib_BkIO_104FE558"), null);
+        return libBkIO_ge_MessageType_Request;
+    }
+}
+
+string libBkIO_gf_ConvertMessageType (int lp_messageType) {
+    // Automatic Variable Declarations
+    int auto4EE328B4_val;
+
+    // Implementation
+    auto4EE328B4_val = lp_messageType;
+    if (auto4EE328B4_val == libBkIO_ge_MessageType_Request) {
+        return libBkIO_gv_bANK_SECTION_EVENTS_REQUEST;
+    }
+    else if (auto4EE328B4_val == libBkIO_ge_MessageType_Response) {
+        return libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE;
+    }
+    else {
+        TextExpressionSetToken("Param/Expression/lib_BkIO_1DB4794A", "EventType", StringToText(IntToString((lp_messageType))));
+        UIAlert("Trigger", 1, TextExpressionAssemble("Param/Expression/lib_BkIO_1DB4794A"), null);
+        return "undefined";
+    }
+}
+
+void libBkIO_gf_LoadEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, string lp_eventID, int lp_eventType) {
+    // Variable Declarations
+    string lv_sectionKey;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_sectionKey = (libBkIO_gf_ConvertMessageType(lp_eventType) + "." + lp_eventID);
+
+    // Implementation
+    TriggerDebugOutput(libBkIO_ge_ExtendedDebugMessageType_Parser, StringToText(("Loading  event #" + lp_event.lv_eventID + ": " + libBkIO_gf_ConvertEventType(lp_event.lv_eventType) + " " + libBkIO_gf_ConvertMessageType(lp_eventType) + " from the bank of player " + IntToString(lp_player))), false);
+    // Implementation
+    lp_event.lv_eventID = lp_eventID;
+    lp_event.lv_eventType = libBkIO_gf_ParseEventType(BankValueGetAsString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "event-type"));
+    lp_event.lv_customData = BankValueGetAsString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "custom-data");
+    lp_event.lv_ownerID = BankValueGetAsString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "owner-id");
+    lp_event.lv_unitID = BankValueGetAsString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "unit-id");
+    lp_event.lv_result = true;
+    if ((lp_eventType == libBkIO_ge_MessageType_Request)) {
+        BankSectionRemove(libBkIO_gv_iOBank[lp_player], lv_sectionKey);
+    }
+
+}
+
+void libBkIO_gf_StoreEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, int lp_eventType) {
+    // Variable Declarations
+    string lv_sectionKey;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_sectionKey = (libBkIO_gf_ConvertMessageType(lp_eventType) + "." + lp_event.lv_eventID);
+
+    // Implementation
+    BankSectionRemove(libBkIO_gv_iOBank[lp_player], lv_sectionKey);
+    BankSectionCreate(libBkIO_gv_iOBank[lp_player], lv_sectionKey);
+    TriggerDebugOutput(libBkIO_ge_ExtendedDebugMessageType_Parser, StringToText(("Saving event #" + lp_event.lv_eventID + ": " + libBkIO_gf_ConvertEventType(lp_event.lv_eventType) + " " + libBkIO_gf_ConvertMessageType(lp_eventType) + " from the bank of player " + IntToString(lp_player))), false);
+    BankValueSetFromString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "event-type", libBkIO_gf_ConvertEventType(lp_event.lv_eventType));
+    BankValueSetFromString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "custom-data", lp_event.lv_customData);
+    BankValueSetFromString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "owner-id", lp_event.lv_ownerID);
+    BankValueSetFromString(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "unit-id", lp_event.lv_unitID);
+    BankValueSetFromFlag(libBkIO_gv_iOBank[lp_player], lv_sectionKey, "success", lp_event.lv_result);
+    BankValueSetFromString(libBkIO_gv_iOBank[lp_player], (libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX + "." + libBkIO_gf_ConvertMessageType(lp_eventType) + "s"), lp_event.lv_eventID, lp_event.lv_eventID);
+    libBkIO_gv_hasUpdates[lp_player] = true;
+}
+
+void libBkIO_gf_ProcessRequestAllocateUnit (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner, int lp_unitOwner) {
+    // Variable Declarations
+    libBkIO_gs_BankEvent lv_response;
+    string lv_unitType;
+    string lv_unitLocation;
+    unit lv_u;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_response.lv_eventID = "";
+    lv_response.lv_eventType = libBkIO_ge_EventType_AllocateUnit;
+    lv_response.lv_ownerID = "";
+    lv_response.lv_unitID = "";
+    lv_response.lv_customData = "";
+    lv_response.lv_result = true;
+    lv_unitType = StringWord(lp_request.lv_customData, 1);
+    lv_unitLocation = StringWord(lp_request.lv_customData, 2);
+
+    // Implementation
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Processing event #" + lp_request.lv_eventID + ": Allocate unit for user " + lp_request.lv_ownerID + " of type " + lv_unitType + " on location " + lv_unitLocation)), false);
+    lv_u = libBkIO_gf_FindUnit(lp_unitOwner, lv_unitType, lv_unitLocation);
+    lv_response.lv_eventID = lp_request.lv_eventID;
+    lv_response.lv_eventType = lp_request.lv_eventType;
+    lv_response.lv_ownerID = lp_request.lv_ownerID;
+    if ((lv_u != null)) {
+        libNtve_gf_SendActorMessageToUnit(lv_u, "HaloStart");
+        libNtve_gf_SendActorMessageToUnit(lv_u, "HaloSetColor 255,255,128");
+        MinimapPing(PlayerGroupSingle(lp_bankOwner), UnitGetPosition(lv_u), 1.0, libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(UnitGetOwner(lv_u), false)));
+        lv_response.lv_result = true;
+        lv_response.lv_unitID = IntToString(UnitGetTag(lv_u));
+        lv_response.lv_customData = "";
+    }
+    else {
+        lv_response.lv_result = false;
+        lv_response.lv_unitID = "";
+        lv_response.lv_customData = "Unable to find unit";
+    }
+    libBkIO_gf_StoreEvent(lp_bankOwner, lv_response, libBkIO_ge_MessageType_Response);
+}
+
+unit libBkIO_gf_FindUnit (int lp_unitOwner, string lp_unitTypeStr, string lp_unitLocationStr) {
+    // Variable Declarations
+    string lv_unittype;
+    region lv_area;
+    unit lv_u;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_unittype = UnitTypeFromString(lp_unitTypeStr);
+    lv_area = RegionFromName(lp_unitLocationStr);
+
+    // Implementation
+    if ((lv_unittype == "")) {
+        lv_unittype = null;
+    }
+
+    if ((lv_area == null)) {
+        lv_area = null;
+    }
+
+    lv_u = UnitGroupRandomUnit(UnitGroup(lv_unittype, lp_unitOwner, lv_area, UnitFilter(0, 0, (1 << c_targetFilterMissile), (1 << (c_targetFilterDead - 32)) | (1 << (c_targetFilterHidden - 32))), 0), c_unitCountAlive);
+    if ((lv_u == null)) {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText("Unable to find unit matching conditions!"), false);
+    }
+    else {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Unit found, returning it: " + IntToString(UnitGetTag(lv_u)))), false);
+    }
+    return lv_u;
+}
+
+trigger auto_libBkIO_gf_ProcessRequest_Trigger = null;
+int auto_libBkIO_gf_ProcessRequest_lp_player;
+string auto_libBkIO_gf_ProcessRequest_lp_eventID;
+
+void libBkIO_gf_ProcessRequest (int lp_player, string lp_eventID) {
+    auto_libBkIO_gf_ProcessRequest_lp_player = lp_player;
+    auto_libBkIO_gf_ProcessRequest_lp_eventID = lp_eventID;
+
+    if (auto_libBkIO_gf_ProcessRequest_Trigger == null) {
+        auto_libBkIO_gf_ProcessRequest_Trigger = TriggerCreate("auto_libBkIO_gf_ProcessRequest_TriggerFunc");
+    }
+
+    TriggerExecute(auto_libBkIO_gf_ProcessRequest_Trigger, false, false);
+}
+
+bool auto_libBkIO_gf_ProcessRequest_TriggerFunc (bool testConds, bool runActions) {
+    int lp_player = auto_libBkIO_gf_ProcessRequest_lp_player;
+    string lp_eventID = auto_libBkIO_gf_ProcessRequest_lp_eventID;
+
+    // Variable Declarations
+    libBkIO_gs_BankEvent lv_request;
+
+    // Automatic Variable Declarations
+    int autoBFBB2428_val;
+
+    // Variable Initialization
+    lv_request.lv_eventID = "";
+    lv_request.lv_eventType = libBkIO_ge_EventType_AllocateUnit;
+    lv_request.lv_ownerID = "";
+    lv_request.lv_unitID = "";
+    lv_request.lv_customData = "";
+    lv_request.lv_result = true;
+
+    // Implementation
+    libBkIO_gf_LoadEvent(lp_player, lv_request, lp_eventID, libBkIO_ge_MessageType_Request);
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Processing event #" + lv_request.lv_eventID + "...")), false);
+    autoBFBB2428_val = lv_request.lv_eventType;
+    if (autoBFBB2428_val == libBkIO_ge_EventType_AllocateUnit) {
+        libBkIO_gf_ProcessRequestAllocateUnit(lv_request, lp_player, c_playerAny);
+    }
+    else {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventWorker), StringToText(("Error during processing event #" + lv_request.lv_eventID + ": Unsupported event type '" + libBkIO_gf_ConvertEventType(lv_request.lv_eventType) + "'")), false);
+    }
+    return true;
+}
+
+void libBkIO_gf_SaveBank (int lp_player) {
+    // Automatic Variable Declarations
+    // Implementation
+    if ((libBkIO_gv_hasUpdates[lp_player] == true)) {
+        if (! libBkIO_gv_lock[lp_player]) {
+            libBkIO_gv_lock[lp_player] = true;
+            TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText(("Saving player's " + IntToString(lp_player) + " bank...")), false);
+            BankSave(libBkIO_gv_iOBank[lp_player]);
+            libBkIO_gv_hasUpdates[lp_player] = false;
+            TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank saved"), false);
+            libBkIO_gv_lock[lp_player] = false;
+        }
+        else {
+            TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank is locked, ignoring save operation..."), false);
+        }
+    }
+    else {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText(("Player's " + IntToString(lp_player) + " bank has no updates, ignoring save operation...")), false);
+    }
+}
+
+void libBkIO_gf_ReloadBank (int lp_player) {
+    // Variable Declarations
+    int lv_numberofEvents;
+    string lv_eventsListSection;
+
+    // Automatic Variable Declarations
+    int auto2F40DA14_ae;
+    int auto2F40DA14_var;
+
+    // Variable Initialization
+    lv_eventsListSection = (libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX + "." + libBkIO_gv_bANK_SECTION_EVENTS_REQUEST + "s");
+
+    // Implementation
+    if (! libBkIO_gv_lock[lp_player]) {
+        libBkIO_gv_lock[lp_player] = true;
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText(("Reloading player's " + IntToString(lp_player) + " bank...")), false);
+        BankReload(libBkIO_gv_iOBank[lp_player]);
+        BankWait(libBkIO_gv_iOBank[lp_player]);
+        if ((BankSectionExists(libBkIO_gv_iOBank[lp_player], lv_eventsListSection) == true)) {
+            auto2F40DA14_ae = (BankKeyCount(libBkIO_gv_iOBank[lp_player], lv_eventsListSection) - 1);
+            auto2F40DA14_var = 0;
+            for ( ; auto2F40DA14_var <= auto2F40DA14_ae; auto2F40DA14_var += 1 ) {
+                libBkIO_gf_ProcessRequest(lp_player, BankKeyName(libBkIO_gv_iOBank[lp_player], lv_eventsListSection, auto2F40DA14_var));
+            }
+            libBkIO_gv_hasUpdates[lp_player] = true;
+            BankSectionRemove(libBkIO_gv_iOBank[lp_player], lv_eventsListSection);
+            TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank reloaded"), false);
+        }
+        else {
+            TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Nothing to update"), false);
+        }
+        libBkIO_gv_lock[lp_player] = false;
+    }
+    else {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank is locked, ignoring reload operation..."), false);
+    }
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Event Generator
+//--------------------------------------------------------------------------------------------------
+bool libBkIO_gt_EventGenerator_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_player;
+    int lv_messageType;
+    int lv_eventType;
+    string lv_eventOwnerID;
+    string lv_eventUnitID;
+    string lv_eventCustomData;
+    libBkIO_gs_BankEvent lv_event;
+    string lv_eventID;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_player = EventPlayer();
+    lv_messageType = libBkIO_gf_ParseMessageType(StringWord(EventChatMessage(false), 2));
+    lv_eventType = libBkIO_gf_ParseEventType(StringWord(EventChatMessage(false), 3));
+    lv_eventOwnerID = StringWord(EventChatMessage(false), 4);
+    lv_eventUnitID = StringWord(EventChatMessage(false), 5);
+    lv_eventCustomData = StringReplaceWord(StringWord(EventChatMessage(false), 6), ":", " ", c_stringReplaceAll, c_stringCase);
+    lv_event.lv_eventID = "";
+    lv_event.lv_eventType = libBkIO_ge_EventType_AllocateUnit;
+    lv_event.lv_ownerID = "";
+    lv_event.lv_unitID = "";
+    lv_event.lv_customData = "";
+    lv_event.lv_result = true;
+    lv_eventID = libuuid_gf_UUID4();
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), StringToText(("Parsing event '" + EventChatMessage(false) + "' #" + lv_eventID)), false);
+    lv_event.lv_customData = lv_eventCustomData;
+    lv_event.lv_eventType = lv_eventType;
+    lv_event.lv_ownerID = lv_eventOwnerID;
+    lv_event.lv_result = true;
+    lv_event.lv_eventID = lv_eventID;
+    while (!((libBkIO_gv_lock[lv_player] == false))) {
+        Wait(0.05, c_timeReal);
+    }
+    if (! libBkIO_gv_lock[lv_player]) {
+        libBkIO_gv_lock[lv_player] = true;
+        libBkIO_gf_StoreEvent(lv_player, lv_event, lv_messageType);
+        libBkIO_gv_lock[lv_player] = false;
+    }
+    else {
+        TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Bank is locked, unable to save event!"), false);
+    }
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_Debugger), StringToText(("Message parsed! Event ID: #" + lv_eventID)), false);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libBkIO_gt_EventGenerator_Init () {
+    libBkIO_gt_EventGenerator = TriggerCreate("libBkIO_gt_EventGenerator_Func");
+    TriggerEnable(libBkIO_gt_EventGenerator, false);
+    TriggerAddEventChatMessage(libBkIO_gt_EventGenerator, c_playerAny, "-event", false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Event Loader
+//--------------------------------------------------------------------------------------------------
+bool libBkIO_gt_EventLoader_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    string lv_key;
+
+    // Automatic Variable Declarations
+    playergroup auto5053E6FA_g;
+    int auto5053E6FA_var;
+
+    // Variable Initialization
+    lv_key = "";
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto5053E6FA_g = libBkIO_gv_playerswithBank;
+    auto5053E6FA_var = -1;
+    while (true) {
+        auto5053E6FA_var = PlayerGroupNextPlayer(auto5053E6FA_g, auto5053E6FA_var);
+        if (auto5053E6FA_var < 0) { break; }
+        libBkIO_gf_SaveBank(auto5053E6FA_var);
+        libBkIO_gf_PringBankSections(auto5053E6FA_var);
+        libBkIO_gf_ReloadBank(auto5053E6FA_var);
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libBkIO_gt_EventLoader_Init () {
+    libBkIO_gt_EventLoader = TriggerCreate("libBkIO_gt_EventLoader_Func");
+    TriggerEnable(libBkIO_gt_EventLoader, false);
+    TriggerAddEventTimePeriodic(libBkIO_gt_EventLoader, libBkIO_gv_bANK_LOADER_INTERVAL, c_timeReal);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Load Bank
+//--------------------------------------------------------------------------------------------------
+bool libBkIO_gt_LoadBank_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    playergroup autoAFA7BD91_g;
+    int autoAFA7BD91_var;
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TriggerDebugOutput(libBkIO_gf_ConvertExtendedDebugMessageType(libBkIO_ge_ExtendedDebugMessageType_EventLoop), StringToText("Game initialization: Loading bank"), false);
+    autoAFA7BD91_g = PlayerGroupActive();
+    autoAFA7BD91_var = -1;
+    while (true) {
+        autoAFA7BD91_var = PlayerGroupNextPlayer(autoAFA7BD91_g, autoAFA7BD91_var);
+        if (autoAFA7BD91_var < 0) { break; }
+        if ((PlayerType(autoAFA7BD91_var) == c_playerTypeUser)) {
+            BankLoad(libBkIO_gv_bANK_NAME, autoAFA7BD91_var);
+            libBkIO_gv_iOBank[autoAFA7BD91_var] = BankLastCreated();
+            PlayerGroupAdd(libBkIO_gv_playerswithBank, autoAFA7BD91_var);
+        }
+
+    }
+    TriggerEnable(libBkIO_gt_EventLoader, true);
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libBkIO_gt_LoadBank_Init () {
+    libBkIO_gt_LoadBank = TriggerCreate("libBkIO_gt_LoadBank_Func");
+    TriggerAddEventMapInit(libBkIO_gt_LoadBank);
+}
+
+void libBkIO_InitTriggers () {
+    libBkIO_gt_EventGenerator_Init();
+    libBkIO_gt_EventLoader_Init();
+    libBkIO_gt_LoadBank_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool libBkIO_InitLib_completed = false;
+
+void libBkIO_InitLib () {
+    if (libBkIO_InitLib_completed) {
+        return;
+    }
+
+    libBkIO_InitLib_completed = true;
+
+    libBkIO_InitLibraries();
+    libBkIO_InitVariables();
+    libBkIO_InitTriggers();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+void InitLibs () {
+    libNtve_InitLib();
+    libuuid_InitLib();
+    libBkIO_InitLib();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Global Variables
+//--------------------------------------------------------------------------------------------------
+bank[17] gv_killsBank;
+unit[17] gv_heroUnits;
+unitgroup gv_allHeroes;
+
+void InitGlobals () {
+    gv_allHeroes = UnitGroupEmpty();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Variables
+//--------------------------------------------------------------------------------------------------
+trigger gt_EnableDebugging;
+trigger gt_Ping;
+trigger gt_UUID;
+trigger gt_InitBank;
+trigger gt_SaveKills;
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Enable Debugging
+//--------------------------------------------------------------------------------------------------
+bool gt_EnableDebugging_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libBkIO_gf_EnableDebugging();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_EnableDebugging_Init () {
+    gt_EnableDebugging = TriggerCreate("gt_EnableDebugging_Func");
+    TriggerAddEventMapInit(gt_EnableDebugging);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Ping
+//--------------------------------------------------------------------------------------------------
+bool gt_Ping_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/3EEBA0F1", "DateTime", IntToText(CurrentSynchronousGameTimeGet()));
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, TextExpressionAssemble("Param/Expression/3EEBA0F1"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Ping_Init () {
+    gt_Ping = TriggerCreate("gt_Ping_Func");
+    TriggerAddEventChatMessage(gt_Ping, c_playerAny, "-ping", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: UUID
+//--------------------------------------------------------------------------------------------------
+bool gt_UUID_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/C66BC4D3", "UUID", StringToText(libuuid_gf_UUID4()));
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, TextExpressionAssemble("Param/Expression/C66BC4D3"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_UUID_Init () {
+    gt_UUID = TriggerCreate("gt_UUID_Func");
+    TriggerAddEventChatMessage(gt_UUID, c_playerAny, "-uuid", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Init Bank
+//--------------------------------------------------------------------------------------------------
+bool gt_InitBank_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_kills;
+    bank lv_b;
+    unit lv_u;
+
+    // Automatic Variable Declarations
+    playergroup auto77142DF2_g;
+    int auto77142DF2_var;
+    unitgroup autoA121C1B9_g;
+    int autoA121C1B9_u;
+    unit autoA121C1B9_var;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    gv_heroUnits[1] = UnitFromId(1506352502);
+    gv_heroUnits[2] = UnitFromId(579104985);
+    auto77142DF2_g = PlayerGroupActive();
+    auto77142DF2_var = -1;
+    while (true) {
+        auto77142DF2_var = PlayerGroupNextPlayer(auto77142DF2_g, auto77142DF2_var);
+        if (auto77142DF2_var < 0) { break; }
+        lv_u = gv_heroUnits[auto77142DF2_var];
+        if ((lv_u != null)) {
+            UnitGroupAdd(gv_allHeroes, lv_u);
+        }
+
+        if ((PlayerType(auto77142DF2_var) == c_playerTypeUser)) {
+            if ((BankExists("killsbank", auto77142DF2_var) == false)) {
+                TextExpressionSetToken("Param/Expression/16C8BAA6", "PlayerID", IntToText(auto77142DF2_var));
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/16C8BAA6"));
+            }
+            TextExpressionSetToken("Param/Expression/FABC95AA", "PlayerID", IntToText(auto77142DF2_var));
+            UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/FABC95AA"));
+            BankLoad("killsbank", auto77142DF2_var);
+            lv_b = BankLastCreated();
+            gv_killsBank[auto77142DF2_var] = lv_b;
+            if ((BankKeyExists(lv_b, "hero", "kills") == true)) {
+                lv_kills = BankValueGetAsInt(lv_b, "hero", "kills");
+                UnitSetPropertyFixed(lv_u, c_unitPropKills, IntToFixed(lv_kills));
+                TextExpressionSetToken("Param/Expression/0C61447F", "Kills", IntToText(lv_kills));
+                TextExpressionSetToken("Param/Expression/0C61447F", "HeroName", UnitGetName(lv_u));
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/0C61447F"));
+            }
+            else {
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, StringExternal("Param/Value/099B21B6"));
+            }
+            BankValueSetFromUnit(lv_b, "meta", "unit", lv_u);
+            BankValueSetFromText(lv_b, "meta", "text", StringExternal("Param/Value/C7E4FC75"));
+            BankValueSetFromString(lv_b, "meta", "string", "some string");
+            BankValueSetFromFixed(lv_b, "meta", "real", 1.5);
+            BankValueSetFromPoint(lv_b, "meta", "point", UnitGetPosition(lv_u));
+            BankValueSetFromInt(lv_b, "meta", "integer", -44);
+            BankValueSetFromFlag(lv_b, "meta", "boolean", true);
+            CameraLookAtUnit(auto77142DF2_var, lv_u);
+            CameraSetValue(auto77142DF2_var, c_cameraValueDistance, CameraInfoGetValue(CameraInfoDefault(), c_cameraValueDistance), 0.0, -1, 10.0);
+        }
+
+    }
+    autoA121C1B9_g = gv_allHeroes;
+    autoA121C1B9_u = UnitGroupCount(autoA121C1B9_g, c_unitCountAll);
+    for (;; autoA121C1B9_u -= 1) {
+        autoA121C1B9_var = UnitGroupUnitFromEnd(autoA121C1B9_g, autoA121C1B9_u);
+        if (autoA121C1B9_var == null) { break; }
+        MinimapPing(PlayerGroupAll(), UnitGetPosition(autoA121C1B9_var), 1.0, libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(UnitGetOwner(autoA121C1B9_var), false)));
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_InitBank_Init () {
+    gt_InitBank = TriggerCreate("gt_InitBank_Func");
+    TriggerAddEventMapInit(gt_InitBank);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Save Kills
+//--------------------------------------------------------------------------------------------------
+bool gt_SaveKills_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_killer;
+    int lv_owner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_killer = libNtve_gf_KillingUnit();
+    lv_owner = UnitGetOwner(lv_killer);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGroupHasUnit(gv_allHeroes, lv_killer) == true))) {
+            return false;
+        }
+
+        if (!((gv_killsBank[lv_owner] != null))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    BankValueSetFromInt(gv_killsBank[lv_owner], "hero", "kills", FixedToInt(UnitGetPropertyFixed(lv_killer, c_unitPropKills, c_unitPropCurrent)));
+    BankSave(gv_killsBank[lv_owner]);
+    UIDisplayMessage(PlayerGroupSingle(lv_owner), c_messageAreaChat, StringExternal("Param/Value/90C6F793"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_SaveKills_Init () {
+    gt_SaveKills = TriggerCreate("gt_SaveKills_Func");
+    TriggerAddEventUnitDied(gt_SaveKills, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Initialization
+//--------------------------------------------------------------------------------------------------
+void InitTriggers () {
+    gt_EnableDebugging_Init();
+    gt_Ping_Init();
+    gt_UUID_Init();
+    gt_InitBank_Init();
+    gt_SaveKills_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Map Initialization
+//--------------------------------------------------------------------------------------------------
+void InitMap () {
+    InitLibs();
+    InitGlobals();
+    InitTriggers();
+}
