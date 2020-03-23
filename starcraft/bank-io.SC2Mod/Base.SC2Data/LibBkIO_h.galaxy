@@ -1,0 +1,79 @@
+include "TriggerLibs/natives"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Bank IO
+//--------------------------------------------------------------------------------------------------
+// Preset Declarations
+const int libBkIO_ge_ExtendedDebugMessageType_EventWorker = 10000;
+const int libBkIO_ge_ExtendedDebugMessageType_EventLoop = 10001;
+const int libBkIO_ge_ExtendedDebugMessageType_Parser = 10002;
+const int libBkIO_ge_ExtendedDebugMessageType_Debugger = 10003;
+const int libBkIO_ge_EventType_Ping = 0;
+const int libBkIO_ge_EventType_Disconnection = 1;
+const int libBkIO_ge_EventType_AllocateUnit = 2;
+const int libBkIO_ge_EventType_IssueOrder = 3;
+const int libBkIO_ge_EventType_RevokeOwner = 4;
+const int libBkIO_ge_EventType_UnitDies = 5;
+string libBkIO_ge_EventType_Ident (int lp_val);
+const int libBkIO_ge_MessageType_Request = 0;
+const int libBkIO_ge_MessageType_Response = 1;
+
+// Constants
+const string libBkIO_gv_bANK_SECTION_EVENTS_META = "meta";
+const string libBkIO_gv_bANK_SECTION_EVENTS_LIST_PREFIX = "events";
+const string libBkIO_gv_bANK_SECTION_EVENTS_REQUEST = "request";
+const string libBkIO_gv_bANK_SECTION_EVENTS_RESPONSE = "response";
+const string libBkIO_gv_pROTOCOL_VERSION = "1.0";
+const fixed libBkIO_gv_dISCONNECTION_TIMEOUT = 5.0;
+const fixed libBkIO_gv_bANK_LOADER_INTERVAL = 1.0;
+const string libBkIO_gv_bANK_NAME = "bankio";
+
+// Structures
+struct libBkIO_gs_BankEvent {
+    string lv_eventID;
+    int lv_eventType;
+    string lv_ownerID;
+    string lv_unitID;
+    string lv_customData;
+    bool lv_result;
+};
+
+// Variable Declarations
+string libBkIO_gv_gAME_ID;
+int libBkIO_gv_gAME_START_TIME;
+playergroup libBkIO_gv_playerswithBank;
+int[17] libBkIO_gv_lastRevision;
+bool[17] libBkIO_gv_hasUpdates;
+bool[17] libBkIO_gv_lock;
+datetime[17] libBkIO_gv_lastPingReceived;
+bool[17] libBkIO_gv_hasConnection;
+bank[17] libBkIO_gv_iOBank;
+
+// Function Declarations
+int libBkIO_gf_ConvertExtendedDebugMessageType (int lp_potentiallyExtendedType);
+void libBkIO_gf_LogDebugMessage (string lp_message, int lp_logger);
+void libBkIO_gf_EnableDebugging ();
+void libBkIO_gf_PringBankSections (int lp_player);
+int libBkIO_gf_ParseEventType (string lp_eventTypeString);
+string libBkIO_gf_ConvertEventType (int lp_eventType);
+int libBkIO_gf_ParseMessageType (string lp_messageTypeString);
+string libBkIO_gf_ConvertMessageType (int lp_messageType);
+void libBkIO_gf_LoadEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, string lp_eventID, int lp_eventType);
+void libBkIO_gf_StoreEvent (int lp_player, structref<libBkIO_gs_BankEvent> lp_event, int lp_eventType);
+void libBkIO_gf_ProcessRequestPing (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner);
+void libBkIO_gf_ProcessRequestAllocateUnit (structref<libBkIO_gs_BankEvent> lp_request, int lp_bankOwner, int lp_unitOwner);
+unit libBkIO_gf_FindUnit (int lp_unitOwner, string lp_unitTypeStr, string lp_unitLocationStr);
+void libBkIO_gf_ProcessRequest (int lp_player, string lp_eventID);
+void libBkIO_gf_SaveBank (int lp_player);
+void libBkIO_gf_ReloadBank (int lp_player);
+void libBkIO_gf_CheckConnectedStatus (int lp_player);
+void libBkIO_gf_PrepareBank (int lp_player);
+void libBkIO_gf_Main ();
+
+// Trigger Declarations
+trigger libBkIO_gt_EventGenerator;
+trigger libBkIO_gt_EventLoader;
+
+// Library Initialization
+void libBkIO_InitVariables ();
+

@@ -1,0 +1,267 @@
+//==================================================================================================
+// 
+// Generated Map Script
+// 
+// Name:   Bank Test Map
+// 
+//==================================================================================================
+include "TriggerLibs/NativeLib"
+include "LibF8F8C360"
+include "LibBkIO"
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+void InitLibs () {
+    libNtve_InitLib();
+    libF8F8C360_InitLib();
+    libBkIO_InitLib();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Global Variables
+//--------------------------------------------------------------------------------------------------
+bank[17] gv_killsBank;
+unit[17] gv_heroUnits;
+unitgroup gv_allHeroes;
+
+void InitGlobals () {
+    gv_allHeroes = UnitGroupEmpty();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Variables
+//--------------------------------------------------------------------------------------------------
+trigger gt_EnableDebugging;
+trigger gt_Ping;
+trigger gt_UUID;
+trigger gt_InitBank;
+trigger gt_SaveKills;
+trigger gt_EnableBankIO;
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Enable Debugging
+//--------------------------------------------------------------------------------------------------
+bool gt_EnableDebugging_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libBkIO_gf_EnableDebugging();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_EnableDebugging_Init () {
+    gt_EnableDebugging = TriggerCreate("gt_EnableDebugging_Func");
+    TriggerAddEventMapInit(gt_EnableDebugging);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Ping
+//--------------------------------------------------------------------------------------------------
+bool gt_Ping_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/3EEBA0F1", "DateTime", IntToText(CurrentSynchronousGameTimeGet()));
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, TextExpressionAssemble("Param/Expression/3EEBA0F1"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_Ping_Init () {
+    gt_Ping = TriggerCreate("gt_Ping_Func");
+    TriggerAddEventChatMessage(gt_Ping, c_playerAny, "-ping", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: UUID
+//--------------------------------------------------------------------------------------------------
+bool gt_UUID_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    TextExpressionSetToken("Param/Expression/C66BC4D3", "UUID", StringToText(libF8F8C360_gf_UUID4()));
+    UIDisplayMessage(PlayerGroupAll(), c_messageAreaChat, TextExpressionAssemble("Param/Expression/C66BC4D3"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_UUID_Init () {
+    gt_UUID = TriggerCreate("gt_UUID_Func");
+    TriggerAddEventChatMessage(gt_UUID, c_playerAny, "-uuid", true);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Init Bank
+//--------------------------------------------------------------------------------------------------
+bool gt_InitBank_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    int lv_kills;
+    bank lv_b;
+    unit lv_u;
+
+    // Automatic Variable Declarations
+    playergroup auto77142DF2_g;
+    int auto77142DF2_var;
+    unitgroup autoA121C1B9_g;
+    int autoA121C1B9_u;
+    unit autoA121C1B9_var;
+
+    // Variable Initialization
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    gv_heroUnits[1] = UnitFromId(1506352502);
+    gv_heroUnits[2] = UnitFromId(579104985);
+    auto77142DF2_g = PlayerGroupActive();
+    auto77142DF2_var = -1;
+    while (true) {
+        auto77142DF2_var = PlayerGroupNextPlayer(auto77142DF2_g, auto77142DF2_var);
+        if (auto77142DF2_var < 0) { break; }
+        lv_u = gv_heroUnits[auto77142DF2_var];
+        if ((lv_u != null)) {
+            UnitGroupAdd(gv_allHeroes, lv_u);
+        }
+
+        if ((PlayerType(auto77142DF2_var) == c_playerTypeUser)) {
+            if ((BankExists("killsbank", auto77142DF2_var) == false)) {
+                TextExpressionSetToken("Param/Expression/16C8BAA6", "PlayerID", IntToText(auto77142DF2_var));
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/16C8BAA6"));
+            }
+            TextExpressionSetToken("Param/Expression/FABC95AA", "PlayerID", IntToText(auto77142DF2_var));
+            UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/FABC95AA"));
+            BankLoad("killsbank", auto77142DF2_var);
+            lv_b = BankLastCreated();
+            gv_killsBank[auto77142DF2_var] = lv_b;
+            if ((BankKeyExists(lv_b, "hero", "kills") == true)) {
+                lv_kills = BankValueGetAsInt(lv_b, "hero", "kills");
+                UnitSetPropertyFixed(lv_u, c_unitPropKills, IntToFixed(lv_kills));
+                TextExpressionSetToken("Param/Expression/0C61447F", "Kills", IntToText(lv_kills));
+                TextExpressionSetToken("Param/Expression/0C61447F", "HeroName", UnitGetName(lv_u));
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, TextExpressionAssemble("Param/Expression/0C61447F"));
+            }
+            else {
+                UIDisplayMessage(PlayerGroupSingle(auto77142DF2_var), c_messageAreaChat, StringExternal("Param/Value/099B21B6"));
+            }
+            BankValueSetFromUnit(lv_b, "meta", "unit", lv_u);
+            BankValueSetFromText(lv_b, "meta", "text", StringExternal("Param/Value/C7E4FC75"));
+            BankValueSetFromString(lv_b, "meta", "string", "some string");
+            BankValueSetFromFixed(lv_b, "meta", "real", 1.5);
+            BankValueSetFromPoint(lv_b, "meta", "point", UnitGetPosition(lv_u));
+            BankValueSetFromInt(lv_b, "meta", "integer", -44);
+            BankValueSetFromFlag(lv_b, "meta", "boolean", true);
+            CameraLookAtUnit(auto77142DF2_var, lv_u);
+            CameraSetValue(auto77142DF2_var, c_cameraValueDistance, CameraInfoGetValue(CameraInfoDefault(), c_cameraValueDistance), 0.0, -1, 10.0);
+        }
+
+    }
+    autoA121C1B9_g = gv_allHeroes;
+    autoA121C1B9_u = UnitGroupCount(autoA121C1B9_g, c_unitCountAll);
+    for (;; autoA121C1B9_u -= 1) {
+        autoA121C1B9_var = UnitGroupUnitFromEnd(autoA121C1B9_g, autoA121C1B9_u);
+        if (autoA121C1B9_var == null) { break; }
+        MinimapPing(PlayerGroupAll(), UnitGetPosition(autoA121C1B9_var), 1.0, libNtve_gf_ConvertPlayerColorToColor(PlayerGetColorIndex(UnitGetOwner(autoA121C1B9_var), false)));
+    }
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_InitBank_Init () {
+    gt_InitBank = TriggerCreate("gt_InitBank_Func");
+    TriggerAddEventMapInit(gt_InitBank);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Save Kills
+//--------------------------------------------------------------------------------------------------
+bool gt_SaveKills_Func (bool testConds, bool runActions) {
+    // Variable Declarations
+    unit lv_killer;
+    int lv_owner;
+
+    // Automatic Variable Declarations
+    // Variable Initialization
+    lv_killer = libNtve_gf_KillingUnit();
+    lv_owner = UnitGetOwner(lv_killer);
+
+    // Conditions
+    if (testConds) {
+        if (!((UnitGroupHasUnit(gv_allHeroes, lv_killer) == true))) {
+            return false;
+        }
+
+        if (!((gv_killsBank[lv_owner] != null))) {
+            return false;
+        }
+    }
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    BankValueSetFromInt(gv_killsBank[lv_owner], "hero", "kills", FixedToInt(UnitGetPropertyFixed(lv_killer, c_unitPropKills, c_unitPropCurrent)));
+    BankSave(gv_killsBank[lv_owner]);
+    UIDisplayMessage(PlayerGroupSingle(lv_owner), c_messageAreaChat, StringExternal("Param/Value/90C6F793"));
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_SaveKills_Init () {
+    gt_SaveKills = TriggerCreate("gt_SaveKills_Func");
+    TriggerAddEventUnitDied(gt_SaveKills, null);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger: Enable Bank IO
+//--------------------------------------------------------------------------------------------------
+bool gt_EnableBankIO_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    libBkIO_gf_Main();
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void gt_EnableBankIO_Init () {
+    gt_EnableBankIO = TriggerCreate("gt_EnableBankIO_Func");
+    TriggerAddEventMapInit(gt_EnableBankIO);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Trigger Initialization
+//--------------------------------------------------------------------------------------------------
+void InitTriggers () {
+    gt_EnableDebugging_Init();
+    gt_Ping_Init();
+    gt_UUID_Init();
+    gt_InitBank_Init();
+    gt_SaveKills_Init();
+    gt_EnableBankIO_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Map Initialization
+//--------------------------------------------------------------------------------------------------
+void InitMap () {
+    InitLibs();
+    InitGlobals();
+    InitTriggers();
+}

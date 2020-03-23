@@ -1,0 +1,15 @@
+﻿DocInfo/DescLong=Used to test banks
+DocInfo/DescShort=1-2
+DocInfo/Name=Bank Test Map
+MapInfo/Player00/Name=Neutral
+MapInfo/Player01/Name=Player 1
+MapInfo/Player02/Name=Player 2
+MapInfo/Player03/Name=Hostile
+Param/Expression/0C61447F=Kills set to ~Kills~ for your heroic ~HeroName~
+Param/Expression/16C8BAA6=Hey, player ~PlayerID~, your bank is missing!
+Param/Expression/3EEBA0F1=Pong: ~DateTime~
+Param/Expression/C66BC4D3=UUID: ~UUID~
+Param/Expression/FABC95AA=Hey, player ~PlayerID~!
+Param/Value/099B21B6=Unable to load kills, key is missing
+Param/Value/90C6F793=Nice kill, bro!
+Param/Value/C7E4FC75=<s val="BoardTitle">Some </s><c val="00FFFF">text</c> with formatting

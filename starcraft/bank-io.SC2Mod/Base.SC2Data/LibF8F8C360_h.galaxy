@@ -1,0 +1,20 @@
+include "TriggerLibs/natives"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Random
+//--------------------------------------------------------------------------------------------------
+// Variable Declarations
+string[17] libF8F8C360_gv_hexDigits;
+bool libF8F8C360_gv_initComplete;
+
+// Function Declarations
+string libF8F8C360_gf_RandomHexDigit ();
+string libF8F8C360_gf_RandomHexNumber (int lp_length);
+string libF8F8C360_gf_UUID4 ();
+
+// Trigger Declarations
+trigger libF8F8C360_gt_InitHexDigits;
+
+// Library Initialization
+void libF8F8C360_InitVariables ();
+

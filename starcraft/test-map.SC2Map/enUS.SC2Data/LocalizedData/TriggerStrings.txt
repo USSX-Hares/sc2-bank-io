@@ -1,0 +1,16 @@
+﻿Category/Name/2596FBB8=Bank Test
+Category/Name/266FFD27=Debug
+Trigger/Name/8EF93CC4=Save Kills
+Trigger/Name/ADA23878=UUID
+Trigger/Name/CC9DD868=Init Bank
+Trigger/Name/D3796432=Enable Bank IO
+Trigger/Name/E40B5728=Ping
+Trigger/Name/EF5DF31F=Enable Debugging
+Variable/Name/33383867=Kills Bank
+Variable/Name/34AF6422=owner
+Variable/Name/3A4C51B0=All Heroes
+Variable/Name/50D2B3A8=b
+Variable/Name/786C4436=killer
+Variable/Name/8D98B607=u
+Variable/Name/B7D689E3=kills
+Variable/Name/F9BD968E=Hero Units

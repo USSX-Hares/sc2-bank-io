@@ -1,0 +1,117 @@
+include "TriggerLibs/NativeLib"
+
+include "LibF8F8C360_h"
+
+//--------------------------------------------------------------------------------------------------
+// Library: Random
+//--------------------------------------------------------------------------------------------------
+// External Library Initialization
+void libF8F8C360_InitLibraries () {
+    libNtve_InitVariables();
+}
+
+// Variable Initialization
+bool libF8F8C360_InitVariables_completed = false;
+
+void libF8F8C360_InitVariables () {
+    int init_i;
+
+    if (libF8F8C360_InitVariables_completed) {
+        return;
+    }
+
+    libF8F8C360_InitVariables_completed = true;
+
+    for (init_i = 0; init_i <= 16; init_i += 1) {
+        libF8F8C360_gv_hexDigits[init_i] = "";
+    }
+}
+
+// Functions
+string libF8F8C360_gf_RandomHexDigit () {
+    // Automatic Variable Declarations
+    // Implementation
+    return libF8F8C360_gv_hexDigits[RandomInt(0, 15)];
+}
+
+string libF8F8C360_gf_RandomHexNumber (int lp_length) {
+    // Variable Declarations
+    string lv_result;
+
+    // Automatic Variable Declarations
+    int auto6DE23605_ae;
+    int auto6DE23605_var;
+
+    // Variable Initialization
+    lv_result = "";
+
+    // Implementation
+    auto6DE23605_ae = lp_length;
+    auto6DE23605_var = 1;
+    for ( ; auto6DE23605_var <= auto6DE23605_ae; auto6DE23605_var += 1 ) {
+        lv_result = (lv_result + libF8F8C360_gv_hexDigits[RandomInt(0, 15)]);
+    }
+    return lv_result;
+}
+
+string libF8F8C360_gf_UUID4 () {
+    // Automatic Variable Declarations
+    // Implementation
+    return (libF8F8C360_gf_RandomHexNumber(8) + "-" + libF8F8C360_gf_RandomHexNumber(4) + "-" + libF8F8C360_gf_RandomHexNumber(4) + "-" + libF8F8C360_gf_RandomHexNumber(4) + "-" + libF8F8C360_gf_RandomHexNumber(12));
+}
+
+// Triggers
+//--------------------------------------------------------------------------------------------------
+// Trigger: Init Hex Digits
+//--------------------------------------------------------------------------------------------------
+bool libF8F8C360_gt_InitHexDigits_Func (bool testConds, bool runActions) {
+    // Automatic Variable Declarations
+    const int auto9F135F0B_ae = 9;
+    int auto9F135F0B_var;
+
+    // Actions
+    if (!runActions) {
+        return true;
+    }
+
+    auto9F135F0B_var = 0;
+    for ( ; auto9F135F0B_var <= auto9F135F0B_ae; auto9F135F0B_var += 1 ) {
+        libF8F8C360_gv_hexDigits[auto9F135F0B_var] = IntToString(auto9F135F0B_var);
+    }
+    libF8F8C360_gv_hexDigits[10] = "a";
+    libF8F8C360_gv_hexDigits[11] = "b";
+    libF8F8C360_gv_hexDigits[12] = "c";
+    libF8F8C360_gv_hexDigits[13] = "d";
+    libF8F8C360_gv_hexDigits[14] = "e";
+    libF8F8C360_gv_hexDigits[15] = "f";
+    libF8F8C360_gv_initComplete = true;
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void libF8F8C360_gt_InitHexDigits_Init () {
+    libF8F8C360_gt_InitHexDigits = TriggerCreate("libF8F8C360_gt_InitHexDigits_Func");
+    TriggerAddEventMapInit(libF8F8C360_gt_InitHexDigits);
+}
+
+void libF8F8C360_InitTriggers () {
+    libF8F8C360_gt_InitHexDigits_Init();
+}
+
+//--------------------------------------------------------------------------------------------------
+// Library Initialization
+//--------------------------------------------------------------------------------------------------
+bool libF8F8C360_InitLib_completed = false;
+
+void libF8F8C360_InitLib () {
+    if (libF8F8C360_InitLib_completed) {
+        return;
+    }
+
+    libF8F8C360_InitLib_completed = true;
+
+    libF8F8C360_InitLibraries();
+    libF8F8C360_InitVariables();
+    libF8F8C360_InitTriggers();
+}
+

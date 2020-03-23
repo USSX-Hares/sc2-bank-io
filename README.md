@@ -14,7 +14,7 @@ See Documentation:
 4. Open the created bank file with the text editor, write the event and save
 
 ### TODOs - StarCraft
- - [ ] Split Test Map and the Mode
+ - [x] Split Test Map and the Mode
  - [x] Session KeepAlive support
  - [x] Wipe out bank on start and fill meta correctly
  - [ ] Basic support of all events
