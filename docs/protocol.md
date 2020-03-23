@@ -21,7 +21,7 @@ Each data bank is an XML-file of the following structure:
 
 All elements contain no inner data
 
-Example Bank
+#### Example Bank
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Bank version="1">
@@ -176,3 +176,56 @@ and make the given unit allocatable for the Allocate Unit Requests
 An Unit Dies Response is sent by StarCraft
 when the unit with active linking dies.
 The Bot should also remove the linking.
+
+### Examples
+#### Allocate Unit Request:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Bank version="1">
+    <Section name="request.5a5174c1-1962-8192-9980-e2d62aa1d28e">
+        <Key name="event-type">
+            <Value string="allocate-unit"/>
+        </Key>
+        <Key name="custom-data">
+            <Value string="ThorAP any"/>
+        </Key>
+        <Key name="owner-id">
+            <Value string="user1"/>
+        </Key>
+    </Section>
+    <Section name="events.requests">
+        <Key name="5a5174c1-1962-8192-9980-e2d62aa1d28e">
+            <Value string="5a5174c1-1962-8192-9980-e2d62aa1d28e"/>
+        </Key>
+    </Section>
+</Bank>
+```
+
+#### Allocate Unit Response:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<Bank version="1">
+    <Section name="response.5a5174c1-1962-8192-9980-e2d62aa1d28e">
+        <Key name="event-type">
+            <Value string="allocate-unit"/>
+        </Key>
+        <Key name="custom-data">
+            <Value string=""/>
+        </Key>
+        <Key name="owner-id">
+            <Value string="user1"/>
+        </Key>
+        <Key name="success">
+            <Value flag="1"/>
+        </Key>
+        <Key name="unit-id">
+            <Value string="524289"/>
+        </Key>
+    </Section>
+    <Section name="events.responses">
+        <Key name="5a5174c1-1962-8192-9980-e2d62aa1d28e">
+            <Value string="5a5174c1-1962-8192-9980-e2d62aa1d28e"/>
+        </Key>
+    </Section>
+</Bank>
+```
