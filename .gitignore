@@ -1,0 +1,14 @@
+/.idea/
+/logs/
+/output/
+
+# StarCraft documents
+*.SC2Map
+!*.SC2Map/
+*.SC2Mod
+!*.SC2Mod/
+
+# Compilation output
+/test/util/.hypothesis
+__pycache__
+*.egg-info
