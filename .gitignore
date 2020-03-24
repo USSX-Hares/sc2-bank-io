@@ -1,6 +1,7 @@
 /.idea/
 /logs/
 /output/
+/.venv
 
 # StarCraft documents
 *.SC2Map
