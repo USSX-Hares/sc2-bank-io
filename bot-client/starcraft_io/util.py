@@ -19,6 +19,14 @@ def enum_encoder(letter_case: LetterCase) -> Callable[[E], E]:
 
 K = TypeVar('K')
 V = TypeVar('V')
+def filter_out(d: Dict[K, Optional[V]]) -> Dict[K, V]:
+    return dict(filter_out_iter(d))
+def filter_out_iter(d: Dict[K, Optional[V]]) -> Iterator[Tuple[K, V]]:
+    for k, v in d.items():
+        if (v is not None):
+            yield k, v
+
+
 class MappingProxy(Mapping, Generic[K, V]):
     def __init__(self, getter: Callable[[K], V], iterator: Callable[[], Iterator[K]]):
         self._getitem = getter
@@ -40,6 +48,8 @@ class Dumpable(ABC):
 __all__ = \
 [
     'enum_encoder',
+    'filter_out',
+    'filter_out_iter',
     'Dumpable',
     'MappingProxy',
 ]

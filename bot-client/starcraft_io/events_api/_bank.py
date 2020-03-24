@@ -5,7 +5,7 @@ from typing import *
 from ..bank_api import Bank, AbstractBank
 from ..util import MappingProxy
 from ._model import *
-from . import protocol_version
+from ._events import *
 
 @dataclass
 class EventsBank(AbstractBank):
