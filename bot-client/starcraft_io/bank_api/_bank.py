@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import *
 from xml.etree.ElementTree import Element
 
-from ._interfaces import Dumpable
+from ..util import Dumpable
 
 class Text(str): pass
 
