@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import *
 from xml.etree.ElementTree import Element
 
+from ..abstract import *
 from ..util import Dumpable
 
 class Text(str): pass
@@ -21,6 +22,8 @@ class Point:
     @classmethod
     def from_str(cls, s: str) -> 'Point':
         return cls(*map(float, s.split(',')))
+    def to_str(self) -> str:
+        return f'{self.x},{self.y}'
 
 AllowedDataTypes = [ str, int, float, bool, Text, Point, Unit ]
 DataType = TypeVar('DataType', *AllowedDataTypes)
@@ -76,24 +79,16 @@ class BankElement(Generic[DataType], Dumpable, ABC):
     @_make_property(Unit)
     def unit_value(self): pass
 
-class BankSection(MutableMapping[str, BankElement], Dumpable, ABC):
+class BankSection(AbstractStorage[str, BankElement, DataType], Dumpable, ABC):
     key: str
     
-    def as_dict(self) -> Dict[str, DataType]:
-        return dict(self.dict_items())
-    def dict_items(self) -> Iterator[Tuple[str, DataType]]:
-        for k, v in self.items():
-            yield k, v.value
+    def _map_values(self, v: BankElement) -> DataType:
+        return v.value
 
-class AbstractBank(ABC):
-    def reload(self):
-        raise NotImplementedError
-    def save(self):
-        raise NotImplementedError
 
 B = TypeVar('B', bound='Bank')
 T = TypeVar('T')
-class Bank(MutableMapping[str, BankSection], Dumpable, AbstractBank, ABC):
+class Bank(AbstractStorage[str, BankSection, Dict[str, DataType]], AbstractBank, Dumpable, ABC):
     version: str
     path: str
     
@@ -132,16 +127,11 @@ class Bank(MutableMapping[str, BankSection], Dumpable, AbstractBank, ABC):
         else:
             raise TypeError(f"Wrong number of arguments passed to {cls.open.__name__}: Expected either 1, 4 or 5; got {total_args}")
     
-    def as_dict(self) -> Dict[str, Dict[str, DataType]]:
-        return dict(self.dict_items())
-    def dict_items(self) -> Iterator[Tuple[str, Dict[str, DataType]]]:
-        for k, v in self.items():
-            yield k, v.as_dict()
-
+    def _map_values(self, v: BankSection) -> Dict[str, DataType]:
+        return v.as_dict()
 
 __all__ = \
 [
-    'AbstractBank',
     'AllowedDataTypes',
     'Bank',
     'BankElement',
