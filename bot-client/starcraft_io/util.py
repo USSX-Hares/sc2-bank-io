@@ -1,12 +1,13 @@
 from abc import ABC
 from enum import Enum
+from types import MappingProxyType
 from typing import *
 
 from dataclasses_json import LetterCase
 
-E = TypeVar('E', bound=Enum)
-def enum_encoder(letter_case: LetterCase) -> Callable[[Type[E]], Type[E]]:
-    def wrapper(cls: Type[E]) -> Type[E]:
+E = TypeVar('E', bound=Type[Enum])
+def enum_encoder(letter_case: LetterCase) -> Callable[[E], E]:
+    def wrapper(cls: E) -> E:
         member_map = cls._member_map_
         for e in list(cls): # type: Enum
             new_value = letter_case(e.name)
@@ -15,6 +16,20 @@ def enum_encoder(letter_case: LetterCase) -> Callable[[Type[E]], Type[E]]:
             member_map[e.name]._value_ = new_value
         return cls
     return wrapper
+
+K = TypeVar('K')
+V = TypeVar('V')
+class MappingProxy(Mapping, Generic[K, V]):
+    def __init__(self, getter: Callable[[K], V], iterator: Callable[[], Iterator[K]]):
+        self._getitem = getter
+        self._iter = iterator
+    
+    def __getitem__(self, item):
+        return self._getitem(item)
+    def __iter__(self):
+        return self._iter()
+    def __len__(self):
+        return len(list(iter(self)))
 
 
 class Dumpable(ABC):
@@ -26,4 +41,5 @@ __all__ = \
 [
     'enum_encoder',
     'Dumpable',
+    'MappingProxy',
 ]
