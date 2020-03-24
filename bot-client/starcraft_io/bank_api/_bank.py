@@ -97,12 +97,12 @@ class Bank(AbstractStorage[str, BankSection, Dict[str, DataType]], AbstractBank,
         raise NotImplementedError
     
     @classmethod
-    def get_bank_filename(cls, bank_name: str, *, account_id: str = None, player_id: str = None, publisher_id: str = None, starcraft_name: str = 'StarCraft II', test_run: bool = False) -> str:
+    def get_bank_filename(cls, bank_name: str, *, account_id: str = None, player_id: str = None, publisher_id: str = None, starcraft_name: str = 'StarCraft II', local_run: bool = False) -> str:
         p = Path.home().joinpath('Documents', starcraft_name)
-        if (not test_run):
-            assert account_id is not None,   ValueError(f"'account_id' should not be {None} when 'test_run' is {False}")
-            assert player_id is not None,    ValueError(f"'player_id' should not be {None} when 'test_run' is {False}")
-            assert publisher_id is not None, ValueError(f"'publisher_id' should not be {None} when 'test_run' is {False}")
+        if (not local_run):
+            assert account_id is not None,   ValueError(f"'account_id' should not be {None} when 'local_run' is {False}")
+            assert player_id is not None,    ValueError(f"'player_id' should not be {None} when 'local_run' is {False}")
+            assert publisher_id is not None, ValueError(f"'publisher_id' should not be {None} when 'local_run' is {False}")
             p = p.joinpath('Accounts', account_id, player_id, 'Banks', publisher_id)
         else:
             p = p.joinpath('Banks')
@@ -115,7 +115,7 @@ class Bank(AbstractStorage[str, BankSection, Dict[str, DataType]], AbstractBank,
         pass
     @classmethod
     @overload
-    def open(cls: Type[B], bank_name: str, *, account_id: str = None, player_id: str = None, publisher_id: str = None, starcraft_name: str = 'StarCraft II', test_run: bool = False) -> 'Bank':
+    def open(cls: Type[B], bank_name: str, *, account_id: str = None, player_id: str = None, publisher_id: str = None, starcraft_name: str = 'StarCraft II', local_run: bool = False) -> 'Bank':
         pass
     @classmethod
     def open(cls: Type[B], *args, **kwargs) -> B:

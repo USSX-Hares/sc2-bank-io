@@ -10,7 +10,7 @@ if (__name__ == '__main__'):
 b = BankImpl.open \
 (
     bank_name = 'bankio',
-    test_run = True,
+    local_run = True,
 )
 
 for line in b.dump():
