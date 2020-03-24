@@ -85,16 +85,17 @@ class BankSection(MutableMapping[str, BankElement], Dumpable, ABC):
         for k, v in self.items():
             yield k, v.value
 
-B = TypeVar('B', bound='Bank')
-T = TypeVar('T')
-class Bank(MutableMapping[str, BankSection], Dumpable, ABC):
-    version: str
-    path: str
-    
+class AbstractBank(ABC):
     def reload(self):
         raise NotImplementedError
     def save(self):
         raise NotImplementedError
+
+B = TypeVar('B', bound='Bank')
+T = TypeVar('T')
+class Bank(MutableMapping[str, BankSection], Dumpable, AbstractBank, ABC):
+    version: str
+    path: str
     
     @classmethod
     def _open_file(cls, path: str) -> 'Bank':
@@ -140,6 +141,7 @@ class Bank(MutableMapping[str, BankSection], Dumpable, ABC):
 
 __all__ = \
 [
+    'AbstractBank',
     'AllowedDataTypes',
     'Bank',
     'BankElement',
