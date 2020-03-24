@@ -119,7 +119,7 @@ but it can easily be modified to transmit any data.
    * Event Type (key: `event-type`), a string field
    containing one of the allowed event types (see below)
  - The event MAY contain the following fields:
-   * Event Result (key: `result`), a boolean field used for the Response events
+   * Event Result (key: `success`), a boolean field used for the Response events
    representing if the Request was handled without errors.
    * Event Owner (key: `owner-id`), a string field
    representing owner of the event (i.e., owner of unit that died)
